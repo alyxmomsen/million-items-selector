@@ -1,14 +1,17 @@
-const express = require("express");
-const { router } = require("./routes/routes");
-const cors = require("cors");
+const express = require('express');
+const path = require('path');
+const itemsRouter = require('./routes/items');
+
 const app = express();
+app.use(express.json());
+app.use(express.static('public'));
+app.use('/api', itemsRouter.items);
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const port = 3000;
-const host = "0.0.0.0";
-
-app.use(cors({}));
-app.use("/api", router);
-
-app.listen(3000, host, () => {
-    console.log(`server started on ${host}:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
 });
