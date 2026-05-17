@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Million Items Selector</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Левое окно -->
+        <div id="left-panel" class="panel">
+            <h2>Все элементы</h2>
+            <input type="text" id="left-filter" placeholder="Фильтр по ID">
+            <div id="left-list" class="list"></div>
+        </div>
+
+        <!-- Правое окно -->
+        <div id="right-panel" class="panel">
+            <h2>Выбранные элементы</h2>
+            <input type="text" id="right-filter" placeholder="Фильтр по ID">
+            <div id="right-list" class="list"></div>
+        </div>
+    </div>
+
+    <div id="add-panel">
+        <input type="number" id="new-id" placeholder="Новый ID">
+        <button id="add-btn">Добавить</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
