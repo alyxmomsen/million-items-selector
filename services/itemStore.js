@@ -1,31 +1,11 @@
 class ItemStore {
     /**
-     * @type {Set<number>}
+     *
+     * @param {number} offset
+     * @param {number} limit
+     * @param {string} filter
+     * @returns
      */
-    #allItems;
-    /**
-     * @type {Map<number,number>}
-     */
-    #selectedItems;
-
-    getSelected(offset = 0, limit = 20, filter = "") {
-        let items = [...this.#selectedItems.keys()];
-
-        if (filter) {
-            items = items.filter((id) => String(id).includes(filter));
-        }
-
-        const total = items.length;
-
-        const slice = items.slice(offset, offset + limit);
-
-        return {
-            items: slice,
-            total,
-            hasMore: offset + limit < total,
-        };
-    }
-
     getItems(offset = 0, limit = 20, filter = "") {
         let items = [...this.#allItems];
 
@@ -46,49 +26,119 @@ class ItemStore {
         };
     }
 
+    /**
+     *
+     * @param {number} offset
+     * @param {number} limit
+     * @param {string} filter
+     * @returns
+     */
+    getSelected(offset = 0, limit = 20, filter = "") {
+        let items = [...this.#selectedItems.keys()];
+
+        if (filter) {
+            items = items.filter((id) => String(id).includes(filter));
+        }
+
+        const total = items.length;
+
+        const slice = items.slice(offset, offset + limit);
+
+        return {
+            items: slice,
+            total,
+            hasMore: offset + limit < total,
+        };
+    }
+
+    /**
+     *
+     * @param {number} id
+     * @returns
+     */
     selectItem(id) {
         if (!this.#allItems.has(id)) return;
         if (this.#selectedItems.has(id)) return;
-        const position = this.#selectedItems.size + 1;
-        this.#selectedItems.set(id, position);
+        const position = this.#selectedItems.size;
+        this.#selectedItems.set(id, position + 1);
     }
 
+    /**
+     *
+     * @param {number} id
+     */
     deselectItem(id) {
         this.#selectedItems.delete(id);
     }
 
-    reorderItems(id, newPosition) {
-        if (!this.#selectedItems.has(id)) return;
+    /**
+     *
+     * @param {number} targetId
+     * @param {number} newPosition
+     */
+    reorderItems(targetId, newPosition) {
+        const Args = {
+            id: targetId,
+            position: newPosition,
+        };
 
-        const oldPosition = this.#selectedItems.get(id);
+        if (!this.#selectedItems.has(Args.id)) return;
 
-        if (oldPosition === newPosition) return;
+        const oldPosition = this.#selectedItems.get(Args.id);
+
+        if (oldPosition === Args.position) return;
 
         for (const [itemId, position] of this.#selectedItems.entries()) {
-            if (itemId === id) continue;
+            const CurrentIteration = {
+                position,
+                id: itemId,
+            };
 
-            if (newPosition > oldPosition) {
-                if (position > oldPosition && position <= newPosition) {
-                    this.#selectedItems.set(itemId, position - 1);
+            if (CurrentIteration.id === Args.id) continue;
+
+            if (Args.position > oldPosition) {
+                if (
+                    CurrentIteration.position > oldPosition &&
+                    CurrentIteration.position <= newPosition
+                ) {
+                    this.#selectedItems.set(
+                        CurrentIteration.id,
+                        CurrentIteration.position - 1,
+                    );
                 }
-            } else {
-                if (position >= newPosition && position < oldPosition) {
-                    this.#selectedItems.set(itemId, position + 1);
+            } else if (Args.position <= oldPosition) {
+                if (
+                    CurrentIteration.position >= newPosition &&
+                    CurrentIteration.position < oldPosition
+                ) {
+                    this.#selectedItems.set(
+                        CurrentIteration.id,
+                        CurrentIteration.position + 1,
+                    );
                 }
             }
         }
 
-        this.#selectedItems.set(id, newPosition);
+        this.#selectedItems.set(Args.id, Args.position);
     }
+
+    /**
+     * @type {Map<number,number>}
+     */
+    #selectedItems;
+
+    /**
+     * @type {Set<number>}
+     */
+    #allItems;
 
     constructor() {
-        this.#selectedItems = new Map();
         this.#allItems = new Set();
 
-        for (let i = 1; i <= 1_000_000; i++) {
-            this.#allItems.add(i);
+        for (let id = 1; id <= 1_000_000; id++) {
+            this.#allItems.add(id);
         }
+
+        this.#selectedItems = new Map();
     }
 }
-
-module.exports = new ItemStore(); // singletone
