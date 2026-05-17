@@ -40,7 +40,8 @@ const reorderItems = HandlerDecorator(async (ctx) => {
     if (id === undefined || newPosition === undefined) {
         return ctx.res.status(400).json({ error: 'id and newPosition required' });
     }
-    itemStore.reorderItems(Number(id), Number(newPosition));
+    // itemStore.reorderItems(Number(id), Number(newPosition));
+    itemStore.reorderByTargetId(Number(id), Number(newPosition));
     ctx.res.json({ ok: true });
 });
 

@@ -11,12 +11,13 @@ const state = {
 };
 
 // DOM-элементы
-const leftList = document.getElementById('left-list');
-const rightList = document.getElementById('right-list');
-const leftFilterInput = document.getElementById('left-filter');
-const rightFilterInput = document.getElementById('right-filter');
-const newIdInput = document.getElementById('new-id');
-const addBtn = document.getElementById('add-btn');
+
+const leftList = grabDOMElement('left-list');
+const rightList = grabDOMElement('right-list');
+const leftFilterInput = grabDOMElement('left-filter');
+const rightFilterInput = grabDOMElement('right-filter');
+const newIdInput = grabDOMElement('new-id');
+const addBtn = grabDOMElement('add-btn');
 
 // ========== ЛЕВОЕ ОКНО ==========
 
@@ -142,6 +143,7 @@ function onDragOver(e) {
 
 async function onDrop(e) {
     e.preventDefault();
+    console.log('DROP!', draggedId, '→', e.target.textContent);
     const targetId = parseInt(e.target.textContent);
     if (draggedId === targetId) return;
 
@@ -175,5 +177,17 @@ addBtn.addEventListener('click', async () => {
 
 // ========== ПЕРВАЯ ЗАГРУЗКА ==========
 
+rightList.addEventListener('dragover', (e) => e.preventDefault());
 loadLeftItems();
 loadRightItems();
+
+/**
+ * 
+ * @param {string} id 
+ * @returns {HTMLElement}
+ */
+function grabDOMElement(id) {
+    const element = document.getElementById(id);
+    if (element === null) throw new Error(`element is not not found`);
+    return element;
+}

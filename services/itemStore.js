@@ -34,7 +34,9 @@ class ItemStore {
      * @returns
      */
     getSelected(offset = 0, limit = 20, filter = "") {
-        let items = [...this.#selectedItems.keys()];
+        let items = [...this.#selectedItems.entries()]
+            .sort((a, b) => a[1] - b[1])
+            .map(entry => entry[0]);
 
         if (filter) {
             items = items.filter((id) => String(id).includes(filter));
@@ -106,7 +108,7 @@ class ItemStore {
                         CurrentIteration.position - 1,
                     );
                 }
-            } else if (Args.position <= oldPosition) {
+            } else {
                 if (
                     CurrentIteration.position >= newPosition &&
                     CurrentIteration.position < oldPosition
@@ -120,6 +122,12 @@ class ItemStore {
         }
 
         this.#selectedItems.set(Args.id, Args.position);
+    }
+
+    reorderByTargetId(draggedId, targetId) {
+        const targetPosition = this.#selectedItems.get(targetId);
+        if (targetPosition === undefined) return;
+        this.reorderItems(draggedId, targetPosition);
     }
 
     /**
