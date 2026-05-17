@@ -1,4 +1,9 @@
 class ItemStore {
+
+    addItem(id) {
+        this.#allItems.add(id);
+    }
+
     /**
      *
      * @param {number} offset
