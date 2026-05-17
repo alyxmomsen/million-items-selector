@@ -36,7 +36,7 @@ class ItemStore {
     getSelected(offset = 0, limit = 20, filter = "") {
         let items = [...this.#selectedItems.entries()]
             .sort((a, b) => a[1] - b[1])
-            .map(entry => entry[0]);
+            .map((entry) => entry[0]);
 
         if (filter) {
             items = items.filter((id) => String(id).includes(filter));
@@ -140,6 +140,64 @@ class ItemStore {
      */
     #allItems;
 
+    // ========== ОЧЕРЕДИ С ДЕДУПЛИКАЦИЕЙ ==========
+
+    #selectQueue = [];
+    #deselectQueue = [];
+    #addQueue = [];
+    #selectSet = new Set();
+    #deselectSet = new Set();
+    #addSet = new Set();
+
+    queueSelect(id) {
+        const key = String(id);
+        if (!this.#selectSet.has(key)) {
+            this.#selectSet.add(key);
+            this.#selectQueue.push(id);
+        }
+    }
+
+    queueDeselect(id) {
+        const key = String(id);
+        if (!this.#deselectSet.has(key)) {
+            this.#deselectSet.add(key);
+            this.#deselectQueue.push(id);
+        }
+    }
+
+    queueAdd(id) {
+        const key = String(id);
+        if (!this.#addSet.has(key)) {
+            this.#addSet.add(key);
+            this.#addQueue.push(id);
+        }
+    }
+
+    #startBatching() {
+        // Каждую секунду — обрабатываем select и deselect
+        setInterval(() => {
+            while (this.#selectQueue.length > 0) {
+                const id = this.#selectQueue.shift();
+                this.#selectSet.delete(String(id));
+                this.selectItem(id);
+            }
+            while (this.#deselectQueue.length > 0) {
+                const id = this.#deselectQueue.shift();
+                this.#deselectSet.delete(String(id));
+                this.deselectItem(id);
+            }
+        }, 1000);
+
+        // Каждые 10 секунд — обрабатываем add
+        setInterval(() => {
+            while (this.#addQueue.length > 0) {
+                const id = this.#addQueue.shift();
+                this.#addSet.delete(String(id));
+                this.addItem(id);
+            }
+        }, 10000);
+    }
+
     constructor() {
         this.#allItems = new Set();
 
@@ -148,6 +206,8 @@ class ItemStore {
         }
 
         this.#selectedItems = new Map();
+
+        this.#startBatching();
     }
 }
 
