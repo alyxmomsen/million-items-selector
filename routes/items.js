@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
+const router = express.Router();
+const controller = require('../controllers/items.controller.js');
 
-const itemsController = require("../controllers/items.controller");
+router.get('/items', controller.getItems);
+router.get('/selected', controller.getSelected);
+router.post('/select', controller.selectItem);
+router.post('/deselect', controller.deselectItem);
+router.post('/reorder', controller.reorderItems);
+router.post('/add', controller.addItem);
 
-const items = express.Router();
-
-items.get("/hello", itemsController.getItems);
-
-
-
-
-module.exports = { items };
+module.exports = router;

@@ -5,7 +5,7 @@ const itemsRouter = require('./routes/items');
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/api', itemsRouter.items);
+app.use('/api', itemsRouter);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

@@ -13,12 +13,12 @@ const state = {
 };
 
 // DOM-элементы
-const leftList = document.getElementById('left-list');
-const rightList = document.getElementById('right-list');
-const leftFilterInput = document.getElementById('left-filter');
-const rightFilterInput = document.getElementById('right-filter');
-const newIdInput = document.getElementById('new-id');
-const addBtn = document.getElementById('add-btn');
+const leftList = grabDOMElement('left-list');
+const rightList = grabDOMElement('right-list');
+const leftFilterInput = grabDOMElement('left-filter');
+const rightFilterInput = grabDOMElement('right-filter');
+const newIdInput = grabDOMElement('new-id');
+const addBtn = grabDOMElement('add-btn');
 
 // Загрузка элементов для левого окна
 async function loadLeftItems(reset = false) {
@@ -64,3 +64,14 @@ leftFilterInput.addEventListener('input', () => {
 
 // Первая загрузка
 loadLeftItems();
+
+
+function grabDOMElement(id) {
+    
+    const element = document.getElementById(id);
+
+    if (!element) throw new Error(`DOM element is not exist`);
+
+    return element;
+
+}

@@ -142,3 +142,5 @@ class ItemStore {
         this.#selectedItems = new Map();
     }
 }
+
+module.exports = new ItemStore();
