@@ -191,6 +191,7 @@ class ItemStore {
                 this.#deselectSet.delete(String(id));
                 this.deselectItem(id);
             }
+            this.#notifyClients();
         }, 1000);
 
         // Каждые 10 секунд — обрабатываем add
@@ -200,7 +201,33 @@ class ItemStore {
                 this.#addSet.delete(String(id));
                 this.addItem(id);
             }
+            this.#notifyClients();
         }, 10000);
+    }
+
+    #lastUpdate = Date.now();
+    #updateResolvers = [];
+
+
+    getLastUpdate() {
+        return this.#lastUpdate
+    }
+
+    async waitForUpdate(lastTimestamp) {
+        if (this.#lastUpdate > lastTimestamp) {
+            return { updated: true, timestamp: this.#lastUpdate };
+        }
+
+        return new Promise(resolve => {
+            this.#updateResolvers.push();
+        });
+    }
+
+    async #notifyClients () {
+        this.#lastUpdate = Date.now();
+        const resolvers = [...this.#updateResolvers];
+        this.#updateResolvers = [];
+        resolvers.forEach(resolver => resolve({updated:true, timestamp:this.#lastUpdate}));
     }
 
     constructor() {

@@ -22,7 +22,8 @@ const selectItem = HandlerDecorator(async (ctx) => {
     if (id === undefined) {
         return ctx.res.status(400).json({ error: 'id required' });
     }
-    itemStore.selectItem(Number(id));
+    // itemStore.selectItem(Number(id));
+    itemStore.queueSelect(Number(id));
     ctx.res.json({ ok: true });
 });
 
@@ -31,7 +32,8 @@ const deselectItem = HandlerDecorator(async (ctx) => {
     if (id === undefined) {
         return ctx.res.status(400).json({ error: 'id required' });
     }
-    itemStore.deselectItem(Number(id));
+    // itemStore.deselectItem(Number(id));
+    itemStore.queueDeselect(Number(id));
     ctx.res.json({ ok: true });
 });
 
@@ -50,8 +52,17 @@ const addItem = HandlerDecorator(async (ctx) => {
     if (id === undefined) {
         return ctx.res.status(400).json({ error: 'id required' });
     }
-    itemStore.addItem(Number(id));
+    // itemStore.addItem(Number(id));
+    itemStore.queueAdd(Number(id));
     ctx.res.json({ ok: true });
 });
 
-module.exports = { getItems, getSelected, selectItem, deselectItem, reorderItems, addItem };
+/* --- */
+
+const waitForUpdates = HandlerDecorator(async (ctx) => {
+    const lastTimestamp = parseInt(ctx.query.lastTimestamp) || 0;
+    const result = await itemStore.waitForUpdate(lastTimestamp);
+    ctx.res.json(result);
+});
+
+module.exports = { getItems, getSelected, selectItem, deselectItem, reorderItems, addItem, waitForUpdates };

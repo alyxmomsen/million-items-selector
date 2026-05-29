@@ -8,6 +8,8 @@ const state = {
     rightHasMore: true,
     isLoadingLeft: false,
     isLoadingRight: false,
+    /*  */
+    lastUpdate:0,
 };
 
 // DOM-элементы
@@ -113,8 +115,7 @@ async function selectItem(id) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
     });
-    loadLeftItems(true);
-    loadRightItems(true);
+    waitForUpdateAndRefresh();
 }
 
 async function deselectItem(id) {
@@ -123,9 +124,21 @@ async function deselectItem(id) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
     });
-    loadLeftItems(true);
-    loadRightItems(true);
+    waitForUpdateAndRefresh();
 }
+
+
+async function waitForUpdateAndRefresh() {
+    const res = await fetch(`/api/updates?lastTimestamp=${state.lastUpdate || 0}`);
+    const data = await res.json();
+    if (data.updated) {
+        state.lastUpdate = data.timestamp;
+        loadLeftItems(true);
+        loadRightItems(true);
+    }
+}
+
+
 
 // ========== DRAG & DROP ==========
 
