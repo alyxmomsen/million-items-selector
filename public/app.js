@@ -1,5 +1,16 @@
-// Состояние
-const state = {
+
+/**
+ * @typedef {Object} DOMElements
+ * @property {HTMLElement} DOMElements.leftList
+ * @property {HTMLElement} DOMElements.rightList
+ * @property {HTMLElement} DOMElements.leftFilterInput
+ * @property {HTMLElement} DOMElements.rightFilterInput
+ * @property {HTMLElement} DOMElements.newIdInput
+ * @property {HTMLElement} DOMElements.addBtn
+ */
+
+
+const State = {
     leftOffset: 0,
     rightOffset: 0,
     leftFilter: '',
@@ -8,178 +19,227 @@ const state = {
     rightHasMore: true,
     isLoadingLeft: false,
     isLoadingRight: false,
+
+    lastUpdate:0,
 };
 
-// DOM-элементы
+document.addEventListener('DOMContentLoaded', () => {
 
-const leftList = grabDOMElement('left-list');
-const rightList = grabDOMElement('right-list');
-const leftFilterInput = grabDOMElement('left-filter');
-const rightFilterInput = grabDOMElement('right-filter');
-const newIdInput = grabDOMElement('new-id');
-const addBtn = grabDOMElement('add-btn');
-
-// ========== ЛЕВОЕ ОКНО ==========
-
-async function loadLeftItems(reset = false) {
-    if (state.isLoadingLeft) return;
-    if (!state.leftHasMore && !reset) return;
-
-    state.isLoadingLeft = true;
-    if (reset) {
-        state.leftOffset = 0;
-        leftList.innerHTML = '';
-        state.leftHasMore = true;
+    const DOMElements = {
+        leftList : grabDOMElement('left-list'),
+        rightList : grabDOMElement('right-list'),
+        leftFilterInput : grabDOMElement('left-filter'),
+        rightFilterInput : grabDOMElement('right-filter'),
+        newIdInput : grabDOMElement('new-id'),
+        addBtn : grabDOMElement('add-btn'),
     }
 
-    const url = `/api/items?offset=${state.leftOffset}&limit=20&filter=${state.leftFilter}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    async function loadLeftItems (reset = false) {
+    
+        if (State.isLoadingLeft) return;
+        if (!State.leftHasMore && !reset) return;
 
-    data.items.forEach(id => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.textContent = id;
-        div.addEventListener('click', () => selectItem(id));
-        leftList.appendChild(div);
-    });
+        State.isLoadingLeft = true;
 
-    state.leftOffset += data.items.length;
-    state.leftHasMore = data.hasMore;
-    state.isLoadingLeft = false;
-}
+        if (reset) {
+            State.leftHasMore = true;
+            State.leftOffset = 0;
+            DOMElements.leftList.innerHTML = '';
+        }
 
-leftList.addEventListener('scroll', () => {
-    if (leftList.scrollTop + leftList.clientHeight >= leftList.scrollHeight - 10) {
-        loadLeftItems();
-    }
-});
+        const url = `/api/items?$offset=${State.leftOffset}&limit=${20}&filter=${State.leftFilter}`;
 
-leftFilterInput.addEventListener('input', () => {
-    state.leftFilter = leftFilterInput.value;
-    loadLeftItems(true);
-});
+        const res = await fetch (url) ;
 
-// ========== ПРАВОЕ ОКНО ==========
+        const data = await res.json();
 
-async function loadRightItems(reset = false) {
-    if (state.isLoadingRight) return;
-    if (!state.rightHasMore && !reset) return;
+        data.items.forEach(id => {
 
-    state.isLoadingRight = true;
-    if (reset) {
-        state.rightOffset = 0;
-        rightList.innerHTML = '';
-        state.rightHasMore = true;
+            const div = document.createElement("div");
+            div.className = 'list-item';
+            div.textContent = id;
+            div.addEventListener('click', () => selectItem(id));
+
+            DOMElements.leftList.appendChild(div);
+        });
+
+        State.leftOffset += data.items.length;
+        State.leftHasMore = data.hasMore;
+        State.isLoadingLeft = false;
     }
 
-    const url = `/api/selected?offset=${state.rightOffset}&limit=20&filter=${state.rightFilter}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    data.items.forEach(id => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.textContent = id;
-        div.draggable = true;
-        div.addEventListener('click', () => deselectItem(id));
-        div.addEventListener('dragstart', onDragStart);
-        div.addEventListener('dragover', onDragOver);
-        div.addEventListener('drop', onDrop);
-        rightList.appendChild(div);
+    DOMElements.leftList.addEventListener('scroll', () => {
+        if (DOMElements.leftList.scrollTop + DOMElements.leftList.clientHeight >= DOMElements.leftList.scrollHeight - 10) {
+            loadLeftItems();
+        }
     });
 
-    state.rightOffset += data.items.length;
-    state.rightHasMore = data.hasMore;
-    state.isLoadingRight = false;
-}
+    DOMElements.leftFilterInput.addEventListener('input', () => {
+        State.leftFilter = DOMElements.leftFilterInput.value;
+        loadLeftItems(true);
+    });
 
-rightList.addEventListener('scroll', () => {
-    if (rightList.scrollTop + rightList.clientHeight >= rightList.scrollHeight - 10) {
-        loadRightItems();
+
+    async function loadRightItems (reset = false) {
+        if (State.isLoadingRight) return;
+        if (!State.rightHasMore && !reset) return;
+
+        State.isLoadingRight = true;
+
+        if (reset) {
+            State.rightOffset = 0;
+            State.rightHasMore = true;
+            DOMElements.rightList.innerHTML = '';
+        }
+
+        const url = `/api/selected?offset=${State.rightOffset}&limit=${20}&filter=${State.rightFilter}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        data.items.forEach(id => {
+
+            const div = document.createElement('div');
+
+            div.className = 'list-item';
+            div.textContent = id;
+            div.draggable = true;
+            div.addEventListener('click', () => deselectItem(id));
+            div.addEventListener('dragstart', onDragStart);
+            div.addEventListener('dragover', onDragOver);
+            div.addEventListener('drop', onDrop);
+
+            DOMElements.rightList.appendChild(div);
+        });
+
+        State.leftOffset += data.items.lenght;
+        State.rightHasMore = data.hasMore; 
+        State.isLoadingRight = false;
+    }
+
+    DOMElements.rightList.addEventListener('scroll', () => {
+        if (DOMElements.rightList.scrollTop + DOMElements.rightList.clientHeight >= DOMElements.rightList.scrollHeight - 10) {
+            loadRightItems();
+        }
+    });
+
+    DOMElements.rightFilterInput.addEventListener('input', () => {
+        State.rightFilter = DOMElements.rightFilterInput.value;
+        loadRightItems(true);
+    });
+
+    // select / deselect
+
+    async function selectItem (id) {
+        await fetch(`/api/select`, {
+            method:'post',
+            headers:{
+                'content-type':'application/json',
+            },
+            body:JSON.stringify({ id }),
+        });
+        // loadLeftItems(true);
+        // loadRightItems(true);
+        waitForUpdateAndRefrash();
+    }
+
+    async function deselectItem (id) {
+        await fetch(`/api/deselect`, {
+            method:'post',
+            headers:{
+                'content-type':'application/json',
+            },
+            body:JSON.stringify({id}),
+        });
+        // loadLeftItems(true);
+        // loadRightItems(true);
+        waitForUpdateAndRefrash();
+    }
+
+    // drag and drop
+
+    const DragNDropState =  {
+        draggedId:null,
+    }
+
+    let draggedId = null;
+
+    /**
+     * 
+     * @param {DragEvent} e 
+     */
+    function onDragStart (e) {
+        DragNDropState.draggedId = parseInt(e.target.textContent);
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    /**
+     * 
+     * @param {DragEvent} e 
+     */
+    function onDragOver (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    /**
+     * 
+     * @param {DragEvent} e 
+     */
+    async function onDrop (e) {
+        e.preventDefault();
+        const draggedId = DragNDropState.draggedId;
+        const targetId = parseInt(e.target.textContent);
+
+        if (draggedId === targetId) return;
+
+        await fetch(`/api/reorder`, {
+            method:'POST',
+            headers:{
+                'content-type':'application/json',
+            },
+            body:JSON.stringify({ draggedId, targetId }),
+        });
+
+        DragNDropState.draggedId = null;
+        loadRightItems(true);
+    }
+
+    // add id
+
+
+    DOMElements.addBtn.addEventListener('click', async (e) => {
+        const id = parseInt(DOMElements.newIdInput.value);
+        if (isNaN(id)) return;
+
+        await fetch(`/api/add`, {
+            method:'post',
+            headers:{
+                'content-type':'application/json',
+            },
+            body:JSON.stringify({ id }),
+        });
+        DOMElements.newIdInput.value = '';
+        loadLeftItems(true);
+
+    });
+
+
+    // DOMElements.rightList.addEventListener('dragover', (e) => e.preventDefault());
+    loadLeftItems(true);
+    loadRightItems(true);
+
+    async function waitForUpdateAndRefrash () {
+
+        const res = await fetch (`/api/updates?lastTimestamp=${State.lastUpdate || 0}`);
+        const data = await res.json();
+
+        if (data.updated) {
+            State.lastUpdate = data.timestamp,
+            loadLeftItems(true);
+            loadRightItems(true);
+        }
     }
 });
-
-rightFilterInput.addEventListener('input', () => {
-    state.rightFilter = rightFilterInput.value;
-    loadRightItems(true);
-});
-
-// ========== ВЫБОР И СНЯТИЕ ==========
-
-async function selectItem(id) {
-    await fetch('/api/select', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-    });
-    loadLeftItems(true);
-    loadRightItems(true);
-}
-
-async function deselectItem(id) {
-    await fetch('/api/deselect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-    });
-    loadLeftItems(true);
-    loadRightItems(true);
-}
-
-// ========== DRAG & DROP ==========
-
-let draggedId = null;
-
-function onDragStart(e) {
-    draggedId = parseInt(e.target.textContent);
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function onDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-}
-
-async function onDrop(e) {
-    e.preventDefault();
-    console.log('DROP!', draggedId, '→', e.target.textContent);
-    const targetId = parseInt(e.target.textContent);
-    if (draggedId === targetId) return;
-
-    // Определяем новую позицию (пока просто меняем местами)
-    // Отправляем на сервер: перетаскиваемый элемент получает позицию цели
-    await fetch('/api/reorder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: draggedId, newPosition: targetId }),
-    });
-
-    draggedId = null;
-    loadRightItems(true);
-}
-
-// ========== ДОБАВЛЕНИЕ ЭЛЕМЕНТА ==========
-
-addBtn.addEventListener('click', async () => {
-    const id = parseInt(newIdInput.value);
-    if (isNaN(id)) return;
-
-    await fetch('/api/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-    });
-
-    newIdInput.value = '';
-    loadLeftItems(true);
-});
-
-// ========== ПЕРВАЯ ЗАГРУЗКА ==========
-
-rightList.addEventListener('dragover', (e) => e.preventDefault());
-loadLeftItems();
-loadRightItems();
 
 /**
  * 
@@ -190,4 +250,34 @@ function grabDOMElement(id) {
     const element = document.getElementById(id);
     if (element === null) throw new Error(`element is not not found`);
     return element;
+}
+
+/**
+ * 
+ * @param {Object} deps 
+ * @param {DOMElements} deps.domElements 
+ * @returns 
+ */
+function LoadLeftList (deps = {}) {
+
+    if (!deps.domElements) throw new Error(`deps.domElements required`);
+
+    const fn = async function (reset = false) {
+    
+        if (State.isLoadingLeft) return;
+        if (!State.leftHasMore && !reset) return;
+
+        State.isLoadingLeft = true;
+
+        if (reset) {
+            State.leftHasMore = true;
+            State.leftOffset = 0;
+            deps.domElements.leftList.innerHTML = '';
+        }
+
+        const url = `/api/items?offset=${State.leftOffset}&limit=${20}&`
+
+    }
+
+    return fn;
 }

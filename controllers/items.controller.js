@@ -36,7 +36,7 @@ const deselectItem = HandlerDecorator(async (ctx) => {
 });
 
 const reorderItems = HandlerDecorator(async (ctx) => {
-    const { id, newPosition } = ctx.req.body;
+    const { draggedId:id, targetId:newPosition } = ctx.req.body;
     if (id === undefined || newPosition === undefined) {
         return ctx.res.status(400).json({ error: 'id and newPosition required' });
     }
@@ -54,4 +54,10 @@ const addItem = HandlerDecorator(async (ctx) => {
     ctx.res.json({ ok: true });
 });
 
-module.exports = { getItems, getSelected, selectItem, deselectItem, reorderItems, addItem };
+const waitForUpdates  = HandlerDecorator(async (ctx) => {
+    const lastTimestamp = ctx.query.lastTimestamp || 0;
+    const result = await itemStore.waitForUpdate(lastTimestamp);
+    ctx.res.json(result);
+});
+
+module.exports = { getItems, getSelected, selectItem, deselectItem, reorderItems, addItem, waitForUpdates };

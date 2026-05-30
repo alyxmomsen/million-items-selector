@@ -23,7 +23,7 @@ class ItemStore {
         }
     }
 
-    getSelectedItems (offset=0, limit=20, filter='') {
+    getSelected (offset=0, limit=20, filter='') {
         let items = [...this.#selectedItems.entries()].sort((entryA, entryB) => entryA[1] - entryB[1]).map(entry => entry[0]);
 
         if (filter) {
@@ -144,6 +144,8 @@ class ItemStore {
                 this.#deselectSet.delete(String(id));
                 this.deselectItem(id);
             }
+
+            this.#notifyClients();
         }, 1000) 
         setInterval(() => {
             while(this.#addQueue.length > 0) {
@@ -151,6 +153,7 @@ class ItemStore {
                 this.#addSet.delete(String(id));
                 this.addItem(id);
             }
+            this.#notifyClients();
         }, 10000)
     }
 
@@ -160,6 +163,47 @@ class ItemStore {
     #deselectSet;
     #addQueue;
     #addSet;
+
+    // long polling
+
+    getLastUpdate() {
+        return this.#lastUpdate;
+    }
+
+    #notifyClients () {
+        this.#lastUpdate = Date.now();
+        const resolvers = [...this.#updateResolvers];
+        this.#updateResolvers = [];
+        for (const resolver of resolvers) {
+            resolver({updated:true, timestamp:this.#lastUpdate});
+        }
+    }
+
+    async waitForUpdate (lastTimestamp) {
+        const Client = {
+            lastTimestamp,
+        }
+
+        if (this.#lastUpdate > Client.lastTimestamp) {
+            return { updated:true, timestamp:this.#lastUpdate }
+        }
+
+        /**
+         * @type {Promise<{updated:boolean;timestamp:number}>}
+         */
+        const promise = new Promise(resolve => {
+            this.#updateResolvers.push(resolve);
+        });
+
+        return promise;
+
+    }
+
+    #lastUpdate;
+    /**
+     * @type {Array<Promise<any>>}
+     */
+    #updateResolvers;
     
     constructor () {
         this.#allItems = new Set();
@@ -180,6 +224,11 @@ class ItemStore {
 
         this.#addQueue = [];
         this.#addSet = new Set();
+
+        // long polling
+
+        this.#lastUpdate = Date.now();
+        this.#updateResolvers = [];
 
         this.#startBatching();
 

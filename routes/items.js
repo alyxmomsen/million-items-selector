@@ -9,4 +9,6 @@ router.post('/deselect', controller.deselectItem);
 router.post('/reorder', controller.reorderItems);
 router.post('/add', controller.addItem);
 
+router.get('/updates', controller.waitForUpdates);
+
 module.exports = router;
